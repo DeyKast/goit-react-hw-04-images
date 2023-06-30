@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-import SearchPhotos from './FetchAPI';
+import searchPhotos from '../service/FetchAPI';
 import Searchbar from './Searchbar';
 import LoadMoreButton from './Button';
 import ImageGalleryItem from './ImageGalleryItem';
@@ -26,8 +26,18 @@ export const App = () => {
     }
 
     setIsLoading(true);
-    SearchPhotos(searchValue, page)
-      .then(({ hits, totalHits }) => {
+    searchPhotos(searchValue, page)
+      .then(response => {
+        if (response.total < 1) {
+          Notify.failure(
+            'Sorry, there are no images matching your search query. Please try again.'
+          );
+          setShowMoreButton(false);
+          return;
+        }
+
+        const { hits, totalHits } = response;
+
         setItems(prevItems => [...prevItems, ...hits]);
         setShowMoreButton(page < Math.ceil(totalHits / 12));
       })
